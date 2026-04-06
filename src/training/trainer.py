@@ -71,11 +71,20 @@ def build_callbacks(cfg: dict, run_dir: str) -> list:
             os.path.join(run_dir, "training_log.csv"),
             append=True,
         ),
-        tf.keras.callbacks.TensorBoard(
-            log_dir=os.path.join(run_dir, "tb_logs"),
-            histogram_freq=0,
-        ),
     ]
+
+    # TensorBoard is optional — skip if not installed
+    try:
+        import tensorboard  # noqa: F401
+        callbacks.append(
+            tf.keras.callbacks.TensorBoard(
+                log_dir=os.path.join(run_dir, "tb_logs"),
+                histogram_freq=0,
+            )
+        )
+    except ImportError:
+        print("[Callbacks] TensorBoard not installed — skipping (training will still work)")
+
     return callbacks
 
 
