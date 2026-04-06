@@ -97,8 +97,10 @@ def run_single(cfg, args, df, run_dir):
     # Validation predictions
     evaluate_and_report(model, val_ds, run_dir)
 
-    # Save final model
+    # Save final model — Keras 3 requires .keras extension
     saved_path = cfg["paths"]["saved_model"]
+    if not saved_path.endswith(".keras"):
+        saved_path = saved_path + ".keras"
     model.save(saved_path)
     print(f"\n[Model] Saved to {saved_path}")
 

@@ -157,13 +157,18 @@ def main():
     args = parser.parse_args()
 
     cfg = load_cfg(args.config)
-    keras_path = args.model  or cfg["paths"]["saved_model"]
+    keras_path = args.model or cfg["paths"]["saved_model"]
     tflite_out = args.output or cfg["paths"]["tflite_model"]
 
+    # Keras 3 saves with .keras extension — try both variants
     if not Path(keras_path).exists():
-        print(f"[ERROR] Keras model not found: {keras_path}")
-        print("        Train first with: python scripts/train.py")
-        sys.exit(1)
+        keras_path_ext = keras_path + ".keras"
+        if Path(keras_path_ext).exists():
+            keras_path = keras_path_ext
+        else:
+            print(f"[ERROR] Keras model not found: {keras_path}")
+            print("        Train first with: python scripts/train.py")
+            sys.exit(1)
 
     print(f"[Export] Loading model from: {keras_path}")
     model = load_keras_model(keras_path)
