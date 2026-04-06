@@ -50,14 +50,20 @@ def plot_confusion_matrix(
     title: str = "Confusion Matrix",
     save_path: str = None,
 ):
-    """Plot normalised confusion matrix."""
-    cm = confusion_matrix(y_true, y_pred)
+    """Plot normalised confusion matrix — only shows classes present in data."""
+    present_labels = sorted(set(y_true.tolist()) | set(y_pred.tolist()))
+    filtered_names = [
+        class_names[i] for i in present_labels
+        if i < len(class_names)
+    ]
+
+    cm = confusion_matrix(y_true, y_pred, labels=present_labels)
     cm_norm = cm.astype(float) / (cm.sum(axis=1, keepdims=True) + 1e-9)
 
-    fig, ax = plt.subplots(figsize=(max(6, len(class_names)), max(5, len(class_names) - 1)))
+    fig, ax = plt.subplots(figsize=(max(6, len(filtered_names)), max(5, len(filtered_names) - 1)))
     sns.heatmap(
         cm_norm, annot=True, fmt=".2f", cmap="Blues",
-        xticklabels=class_names, yticklabels=class_names, ax=ax,
+        xticklabels=filtered_names, yticklabels=filtered_names, ax=ax,
     )
     ax.set_xlabel("Predicted")
     ax.set_ylabel("True")
@@ -98,4 +104,17 @@ def print_classification_report(
     print("\n" + "=" * 60)
     print("Classification Report")
     print("=" * 60)
-    print(classification_report(y_true, y_pred, target_names=class_names))
+
+    # Only include names for classes actually present in the data
+    present_labels = sorted(set(y_true.tolist()) | set(y_pred.tolist()))
+    filtered_names = [
+        class_names[i] for i in present_labels
+        if i < len(class_names)
+    ]
+
+    print(classification_report(
+        y_true, y_pred,
+        labels=present_labels,
+        target_names=filtered_names,
+        zero_division=0,
+    ))
