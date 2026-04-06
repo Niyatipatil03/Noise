@@ -226,9 +226,10 @@ def main():
     # Discover dataset
     df = discover_files(cfg["dataset"]["root"], cfg["dataset"])
     if len(df) == 0:
-        print("\n[ERROR] No audio files found!  Please add audio files to:")
-        print(f"        dataset/OK/          ← OK condition audio")
-        print(f"        dataset/NOT_OK/      ← NOT OK audio (optionally in subdirs by type)")
+        dataset_path = Path(cfg["dataset"]["root"]).resolve()
+        print(f"\n  Copy your audio files to:")
+        print(f"  {dataset_path / 'OK'}         ← all OK audio files")
+        print(f"  {dataset_path / 'NOT_OK'}     ← all NOT OK audio files")
         sys.exit(1)
 
     # Train

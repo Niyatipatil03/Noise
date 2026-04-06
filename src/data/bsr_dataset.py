@@ -105,10 +105,29 @@ def discover_files(root: str, cfg: dict) -> pd.DataFrame:
             "noise_type_name": "UNKNOWN_NOISE",
         })
 
-    df = pd.DataFrame(records).drop_duplicates("file_path").reset_index(drop=True)
-    print(f"[Dataset] Found {len(df)} files: "
-          f"{(df.binary_label==0).sum()} OK, "
-          f"{(df.binary_label==1).sum()} NOT_OK")
+    # Always create DataFrame with fixed columns even if empty
+    if len(records) == 0:
+        df = pd.DataFrame(columns=["file_path", "binary_label", "noise_type_label", "noise_type_name"])
+    else:
+        df = pd.DataFrame(records).drop_duplicates("file_path").reset_index(drop=True)
+
+    ok_count  = int((df["binary_label"] == 0).sum()) if len(df) > 0 else 0
+    nok_count = int((df["binary_label"] == 1).sum()) if len(df) > 0 else 0
+
+    print(f"[Dataset] Found {len(df)} files: {ok_count} OK, {nok_count} NOT_OK")
+
+    if len(df) == 0:
+        abs_ok  = Path(root) / cfg["ok_dir"]
+        abs_nok = Path(root) / cfg["notok_dir"]
+        print("\n" + "="*60)
+        print("  ERROR: No audio files found!")
+        print("="*60)
+        print(f"\n  Place your audio files in these folders:")
+        print(f"  OK files   → {abs_ok.resolve()}")
+        print(f"  NOT OK     → {abs_nok.resolve()}")
+        print(f"\n  Supported formats: .wav  .mp3  .flac  .ogg  .m4a")
+        print("="*60 + "\n")
+
     return df
 
 
