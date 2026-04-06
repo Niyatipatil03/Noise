@@ -13,8 +13,8 @@ dependencies:
   # TFLite inference (offline) — 0.11+ is pure FFI, no Android plugin = no v1 embedding issue
   tflite_flutter: ">=0.11.0 <1.0.0"
 
-  # Audio recording + Bluetooth mic
-  record: ^5.1.2
+  # Audio recording + Bluetooth mic — 6.x dropped v1 embedding registerWith shim
+  record: ^6.0.0
 
   # Permissions
   permission_handler: ^11.3.1
