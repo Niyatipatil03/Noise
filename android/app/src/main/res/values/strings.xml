@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BSR Noise Detector</string>
+    <string name="status_ok">OK</string>
+    <string name="status_not_ok">NOT OK</string>
+    <string name="btn_start">START ANALYSIS</string>
+    <string name="btn_stop">STOP</string>
+    <string name="perm_rationale">Microphone access is required to capture and analyse vehicle noises.</string>
+</resources>

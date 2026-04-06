@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand -->
+    <color name="primary">#1976D2</color>
+    <color name="primary_dark">#0D47A1</color>
+    <color name="accent">#FF6F00</color>
+
+    <!-- Status colours -->
+    <color name="status_ok">#2E7D32</color>       <!-- dark green -->
+    <color name="status_not_ok">#C62828</color>   <!-- dark red -->
+    <color name="status_idle">#455A64</color>     <!-- blue-grey -->
+
+    <!-- Background -->
+    <color name="bg_dark">#121212</color>
+    <color name="card_bg">#1E1E1E</color>
+
+    <!-- Text -->
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#B3FFFFFF</color>
+    <color name="white">#FFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
+</resources>

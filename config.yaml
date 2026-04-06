@@ -1,0 +1,63 @@
+# BSR Noise Detector - Project Configuration
+
+audio:
+  sample_rate: 16000          # YAMNet requires 16 kHz mono
+  clip_duration: 3.0          # seconds per clip
+  hop_duration: 1.0           # seconds between clips during inference
+  n_mels: 128                 # mel filterbank bins
+  n_fft: 1024                 # FFT window size
+  hop_length: 160             # hop between frames (10 ms at 16 kHz)
+  win_length: 400             # window length (25 ms at 16 kHz)
+  fmin: 50                    # min mel frequency (Hz)
+  fmax: 8000                  # max mel frequency (Hz)
+  top_db: 80.0                # dynamic range for log-mel normalisation
+
+dataset:
+  root: "dataset"
+  ok_dir: "OK"
+  notok_dir: "NOT_OK"
+  test_size: 0.20             # 80/20 train-val split
+  random_seed: 42
+  noise_types:                # subdirectory names inside NOT_OK/
+    - IP_NOISE
+    - SUNROOF_NOISE
+    - REAR_NOISE
+    - STEERING_NOISE
+    - DOOR_NOISE
+    - GLASS_NOISE
+
+augmentation:
+  enabled: true
+  time_shift_max: 0.2         # fraction of clip length
+  pitch_shift_steps: 2        # semitones
+  time_stretch_rates: [0.9, 1.1]
+  gaussian_noise_snr_db: [20, 40]
+  spec_time_mask_param: 30    # SpecAugment time mask
+  spec_freq_mask_param: 20    # SpecAugment frequency mask
+  num_augmented_per_sample: 5 # augmented copies per training sample
+
+model:
+  backbone: "cnn14"           # options: cnn14 | yamnet | mobilenet
+  yamnet_url: "https://tfhub.dev/google/yamnet/1"
+  num_noise_types: 6          # IP, SUNROOF, REAR, STEERING, DOOR, GLASS
+  embedding_dim: 512
+  dropout_rate: 0.4
+  l2_reg: 1.0e-4
+  use_attention: true         # CBAM attention in CNN14
+
+training:
+  epochs: 100
+  batch_size: 16
+  learning_rate: 1.0e-4
+  lr_patience: 10             # reduce LR after N plateau epochs
+  lr_factor: 0.5
+  early_stop_patience: 20
+  class_weight_auto: true     # auto-balance OK vs NOT_OK
+  k_folds: 5                  # cross-validation folds
+
+paths:
+  model_dir: "models"
+  output_dir: "outputs"
+  tflite_model: "models/bsr_detector.tflite"
+  saved_model: "models/bsr_detector_saved"
+  labels_file: "models/labels.json"
