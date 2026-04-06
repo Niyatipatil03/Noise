@@ -1,127 +1,186 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:path_provider/path_provider.dart';
 import '../models/detection_result.dart';
 
 class ResultsScreen extends StatelessWidget {
-  final List<DetectionResult> history;
-  const ResultsScreen({super.key, required this.history});
+  final VehicleSession session;
+  final List<DetectionResult> results;
 
-  int get _total  => history.length;
-  int get _notOk  => history.where((r) => r.isNotOk).length;
-  int get _ok     => _total - _notOk;
-  double get _notOkPct => _total > 0 ? _notOk / _total : 0;
-
-  Map<String, int> get _typeBreakdown {
-    final map = <String, int>{};
-    for (final r in history.where((r) => r.isNotOk)) {
-      map[r.noiseTypeName] = (map[r.noiseTypeName] ?? 0) + 1;
-    }
-    final sorted = Map.fromEntries(map.entries.toList()..sort((a, b) => b.value.compareTo(a.value)));
-    return sorted;
-  }
+  const ResultsScreen({super.key, required this.session, required this.results});
 
   @override
   Widget build(BuildContext context) {
-    final isNotOk = _notOk > _ok;
+    final notOk  = session.isNotOk;
+    final color  = notOk ? const Color(0xFFE53935) : const Color(0xFF43A047);
+    final breakdown = session.noiseBreakdown;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: const Color(0xFF0A0A0A),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: const Text('Session Report', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text('Session Report',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share_rounded, color: Colors.white70),
+            onPressed: () => _saveReport(context),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Overall verdict
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isNotOk ? const Color(0xFFC62828) : const Color(0xFF2E7D32),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                isNotOk ? '⚠  NOT OK' : '✓  OK',
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 16),
+        child: Column(children: [
 
-            // Stats card
-            _card(Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _statLine('Total windows analysed', '$_total'),
-                _statLine('OK windows',     '$_ok',    color: const Color(0xFF4CAF50)),
-                _statLine('NOT OK windows', '$_notOk', color: const Color(0xFFF44336)),
-                _statLine('NOT OK rate',    '${(_notOkPct * 100).toStringAsFixed(1)}%'),
-                const SizedBox(height: 8),
-                LinearProgressIndicator(
-                  value: _notOkPct,
-                  backgroundColor: Colors.white12,
-                  color: const Color(0xFFF44336),
-                  minHeight: 10,
-                ),
-              ],
-            )),
-            const SizedBox(height: 16),
-
-            // Noise breakdown
-            _card(Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Noise Type Breakdown',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                if (_typeBreakdown.isEmpty)
-                  const Text('No noise detected', style: TextStyle(color: Colors.white54))
-                else
-                  ..._typeBreakdown.entries.map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(children: [
-                      const Text('• ', style: TextStyle(color: Colors.orange)),
-                      Text('${e.key}', style: const TextStyle(color: Colors.white70)),
-                      const Spacer(),
-                      Text('${e.value} windows',
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    ]),
-                  )),
-              ],
-            )),
-            const SizedBox(height: 24),
-
-            // Save button
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1976D2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                ),
-                onPressed: () => _saveReport(context),
-                child: const Text('SAVE REPORT', style: TextStyle(color: Colors.white)),
+          // Verdict banner
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [color, color.withOpacity(0.5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [BoxShadow(color: color.withOpacity(0.4),
+                  blurRadius: 20, offset: const Offset(0, 8))],
             ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.white24),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            child: Column(children: [
+              Icon(notOk ? Icons.warning_rounded : Icons.verified_rounded,
+                  color: Colors.white, size: 48),
+              const SizedBox(height: 8),
+              Text(notOk ? 'NOT OK' : 'OK',
+                  style: const TextStyle(color: Colors.white,
+                      fontSize: 32, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(session.vehicleName,
+                  style: const TextStyle(color: Colors.white70, fontSize: 16)),
+            ]),
+          ).animate().scale(duration: 400.ms, curve: Curves.elasticOut),
+
+          const SizedBox(height: 20),
+
+          // Stats grid
+          Row(children: [
+            _statTile('Total', '${session.totalWindows}', Icons.grid_view, Colors.blueGrey),
+            const SizedBox(width: 10),
+            _statTile('OK', '${session.okCount}', Icons.check_circle, const Color(0xFF43A047)),
+            const SizedBox(width: 10),
+            _statTile('NOT OK', '${session.notOkCount}', Icons.cancel, const Color(0xFFE53935)),
+          ]).animate().slideY(begin: 0.3, duration: 400.ms, delay: 100.ms).fadeIn(),
+
+          const SizedBox(height: 16),
+
+          // NOT OK Rate bar
+          _card(
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('NOT OK Rate', style: TextStyle(color: Colors.white70, fontSize: 13)),
+              const SizedBox(height: 8),
+              Row(children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: LinearProgressIndicator(
+                      value: session.notOkRate,
+                      minHeight: 12,
+                      backgroundColor: Colors.white12,
+                      valueColor: AlwaysStoppedAnimation<Color>(color),
+                    ),
+                  ),
                 ),
-                onPressed: () => Navigator.pop(context),
-                child: const Text('BACK', style: TextStyle(color: Colors.white70)),
+                const SizedBox(width: 12),
+                Text('${(session.notOkRate * 100).toStringAsFixed(1)}%',
+                    style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16)),
+              ]),
+            ]),
+          ).animate().slideY(begin: 0.3, duration: 400.ms, delay: 200.ms).fadeIn(),
+
+          const SizedBox(height: 16),
+
+          // Noise breakdown
+          if (breakdown.isNotEmpty)
+            _card(
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Row(children: [
+                  Icon(Icons.equalizer_rounded, color: Colors.orange, size: 18),
+                  SizedBox(width: 8),
+                  Text('Noise Type Breakdown',
+                      style: TextStyle(color: Colors.white,
+                          fontWeight: FontWeight.bold, fontSize: 15)),
+                ]),
+                const SizedBox(height: 14),
+                ...breakdown.entries.map((e) {
+                  final pct = session.notOkCount > 0 ? e.value / session.notOkCount : 0.0;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          Container(width: 10, height: 10,
+                              decoration: const BoxDecoration(
+                                  color: Colors.orange, shape: BoxShape.circle)),
+                          const SizedBox(width: 8),
+                          Text(e.key, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                          const Spacer(),
+                          Text('${e.value} windows',
+                              style: const TextStyle(color: Colors.white,
+                                  fontWeight: FontWeight.bold, fontSize: 13)),
+                        ]),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: pct.toDouble(),
+                            minHeight: 6,
+                            backgroundColor: Colors.white12,
+                            color: Colors.orange,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ]),
+            ).animate().slideY(begin: 0.3, duration: 400.ms, delay: 300.ms).fadeIn(),
+
+          const SizedBox(height: 16),
+
+          // Time info
+          _card(Column(children: [
+            _infoRow(Icons.play_circle_outline, 'Start',
+                _fmt(session.startTime)),
+            if (session.endTime != null)
+              _infoRow(Icons.stop_circle_outlined, 'End',
+                  _fmt(session.endTime!)),
+            if (session.endTime != null)
+              _infoRow(Icons.timer_outlined, 'Duration',
+                  _duration(session.startTime, session.endTime!)),
+          ])).animate().slideY(begin: 0.3, duration: 400.ms, delay: 400.ms).fadeIn(),
+
+          const SizedBox(height: 24),
+
+          // Save button
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1976D2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
               ),
+              icon: const Icon(Icons.save_rounded, color: Colors.white),
+              label: const Text('SAVE REPORT',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+              onPressed: () => _saveReport(context),
             ),
-          ],
-        ),
+          ).animate().slideY(begin: 0.3, duration: 400.ms, delay: 500.ms).fadeIn(),
+          const SizedBox(height: 12),
+        ]),
       ),
     );
   }
@@ -130,53 +189,82 @@ class ResultsScreen extends StatelessWidget {
     width: double.infinity,
     padding: const EdgeInsets.all(16),
     decoration: BoxDecoration(
-      color: const Color(0xFF1E1E1E),
-      borderRadius: BorderRadius.circular(12),
+      color: const Color(0xFF1A1A1A),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.white.withOpacity(0.06)),
     ),
     child: child,
   );
 
-  Widget _statLine(String label, String value, {Color? color}) => Padding(
-    padding: const EdgeInsets.only(bottom: 6),
+  Widget _statTile(String label, String value, IconData icon, Color color) => Expanded(
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(children: [
+        Icon(icon, color: color, size: 22),
+        const SizedBox(height: 6),
+        Text(value, style: TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.bold)),
+        Text(label, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+      ]),
+    ),
+  );
+
+  Widget _infoRow(IconData icon, String label, String value) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
     child: Row(children: [
-      Text(label, style: const TextStyle(color: Colors.white54, fontFamily: 'monospace')),
+      Icon(icon, color: Colors.white38, size: 16),
+      const SizedBox(width: 8),
+      Text(label, style: const TextStyle(color: Colors.white38, fontSize: 13)),
       const Spacer(),
-      Text(value, style: TextStyle(color: color ?? Colors.white,
-          fontFamily: 'monospace', fontWeight: FontWeight.bold)),
+      Text(value, style: const TextStyle(color: Colors.white70, fontSize: 13)),
     ]),
   );
 
+  String _fmt(DateTime dt) =>
+      '${dt.hour.toString().padLeft(2,'0')}:${dt.minute.toString().padLeft(2,'0')}  '
+      '${dt.day}/${dt.month}/${dt.year}';
+
+  String _duration(DateTime s, DateTime e) {
+    final diff = e.difference(s);
+    final m = diff.inMinutes, sec = diff.inSeconds % 60;
+    return '${m}m ${sec}s';
+  }
+
   Future<void> _saveReport(BuildContext context) async {
     try {
-      final dir  = await getExternalStorageDirectory() ?? await getApplicationDocumentsDirectory();
+      final dir  = await getExternalStorageDirectory() ??
+                   await getApplicationDocumentsDirectory();
       final ts   = DateTime.now().toString().replaceAll(':', '-').split('.').first;
-      final file = File('${dir.path}/BSR_Report_$ts.txt');
-      await file.writeAsString(_buildReportText());
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Report saved: ${file.path}')));
-      }
+      final file = File('${dir.path}/BSR_${session.vehicleName}_$ts.txt');
+      await file.writeAsString(_reportText());
+      if (context.mounted) _snack(context, 'Saved: ${file.path}');
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Save failed: $e')));
-      }
+      if (context.mounted) _snack(context, 'Save failed: $e');
     }
   }
 
-  String _buildReportText() {
+  void _snack(BuildContext ctx, String msg) =>
+      ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(msg)));
+
+  String _reportText() {
     final sb = StringBuffer();
     sb.writeln('═══════════════════════════════════════');
     sb.writeln('  BSR Noise Detection Report');
-    sb.writeln('  ${DateTime.now()}');
+    sb.writeln('  Vehicle  : ${session.vehicleName}');
+    sb.writeln('  Date     : ${_fmt(session.startTime)}');
     sb.writeln('═══════════════════════════════════════');
-    sb.writeln('Overall  : ${_notOk > _ok ? "NOT OK" : "OK"}');
-    sb.writeln('Total    : $_total windows');
-    sb.writeln('OK       : $_ok windows');
-    sb.writeln('NOT OK   : $_notOk windows');
-    sb.writeln('Rate     : ${(_notOkPct * 100).toStringAsFixed(1)}%');
-    if (_typeBreakdown.isNotEmpty) {
+    sb.writeln('Overall  : ${session.isNotOk ? "NOT OK" : "OK"}');
+    sb.writeln('Windows  : ${session.totalWindows}');
+    sb.writeln('OK       : ${session.okCount}');
+    sb.writeln('NOT OK   : ${session.notOkCount}');
+    sb.writeln('Rate     : ${(session.notOkRate * 100).toStringAsFixed(1)}%');
+    if (session.noiseBreakdown.isNotEmpty) {
       sb.writeln('\nNoise Breakdown:');
-      _typeBreakdown.forEach((k, v) => sb.writeln('  • $k : $v windows'));
+      session.noiseBreakdown.forEach((k, v) => sb.writeln('  • $k : $v windows'));
     }
     sb.writeln('\nGenerated by BSR Noise Detector v1.0');
     sb.writeln('═══════════════════════════════════════');
