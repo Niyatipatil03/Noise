@@ -34,7 +34,7 @@ augmentation:
   gaussian_noise_snr_db: [20, 40]
   spec_time_mask_param: 30    # SpecAugment time mask
   spec_freq_mask_param: 20    # SpecAugment frequency mask
-  num_augmented_per_sample: 5 # augmented copies per training sample
+  num_augmented_per_sample: 2 # augmented copies per training sample
 
 model:
   backbone: "cnn14"           # options: cnn14 | yamnet | mobilenet
@@ -46,12 +46,12 @@ model:
   use_attention: true         # CBAM attention in CNN14
 
 training:
-  epochs: 100
-  batch_size: 16
+  epochs: 20
+  batch_size: 8
   learning_rate: 1.0e-4
-  lr_patience: 10             # reduce LR after N plateau epochs
+  lr_patience: 5              # reduce LR after N plateau epochs
   lr_factor: 0.5
-  early_stop_patience: 20
+  early_stop_patience: 10
   class_weight_auto: true     # auto-balance OK vs NOT_OK
   k_folds: 5                  # cross-validation folds
 
