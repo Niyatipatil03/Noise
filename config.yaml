@@ -46,12 +46,12 @@ model:
   use_attention: true         # CBAM attention in CNN14
 
 training:
-  epochs: 20
+  epochs: 3
   batch_size: 8
   learning_rate: 1.0e-4
-  lr_patience: 5              # reduce LR after N plateau epochs
+  lr_patience: 2
   lr_factor: 0.5
-  early_stop_patience: 10
+  early_stop_patience: 3
   class_weight_auto: true     # auto-balance OK vs NOT_OK
   k_folds: 5                  # cross-validation folds
 
