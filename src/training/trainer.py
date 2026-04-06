@@ -79,6 +79,26 @@ def build_callbacks(cfg: dict, run_dir: str) -> list:
     return callbacks
 
 
+def _make_sample_weight_ds(
+    ds: tf.data.Dataset,
+    class_weights: Dict,
+) -> tf.data.Dataset:
+    """Convert class_weights dict → per-sample weight dataset.
+
+    Keras supports class_weight only for single-output models.
+    For multi-output models we attach sample weights to the dataset instead.
+    """
+    def attach_weight(X, labels):
+        binary_label = labels["binary_out"]          # float32 scalar per sample
+        # weight = class_weights[0] if label==0 else class_weights[1]
+        w0 = tf.constant(class_weights[0], dtype=tf.float32)
+        w1 = tf.constant(class_weights[1], dtype=tf.float32)
+        sample_w = tf.where(binary_label < 0.5, w0, w1)
+        return X, labels, sample_w
+
+    return ds.map(attach_weight, num_parallel_calls=tf.data.AUTOTUNE)
+
+
 def train(
     model: tf.keras.Model,
     train_ds: tf.data.Dataset,
@@ -87,31 +107,22 @@ def train(
     run_dir: str,
     class_weights: Optional[Dict] = None,
 ) -> tf.keras.callbacks.History:
-    """Full training run.
-
-    Parameters
-    ----------
-    model       : compiled Keras model
-    train_ds    : training tf.data.Dataset
-    val_ds      : validation tf.data.Dataset
-    cfg         : config dict
-    run_dir     : directory to save checkpoints / logs
-    class_weights : optional dict for binary head class imbalance
-    """
+    """Full training run."""
     Path(run_dir).mkdir(parents=True, exist_ok=True)
     callbacks = build_callbacks(cfg, run_dir)
 
-    # Wrap class weights for multi-output model
-    cw = None
+    # class_weight is NOT supported for multi-output models in Keras.
+    # Use per-sample weights attached to the dataset instead.
     if class_weights and cfg["training"].get("class_weight_auto", True):
-        cw = class_weights   # tf.keras applies to all losses by default
+        train_ds = _make_sample_weight_ds(train_ds, class_weights)
+        print(f"[Train] Sample weights applied: "
+              f"OK={class_weights[0]:.2f}, NOT_OK={class_weights[1]:.2f}")
 
     history = model.fit(
         train_ds,
         validation_data=val_ds,
         epochs=cfg["training"]["epochs"],
         callbacks=callbacks,
-        class_weight=cw,
         verbose=1,
     )
     return history
