@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Audio recording -->
+    <!-- Audio recording — required by record / AudioRecord -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <!-- Foreground service for background recording (record package requirement) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Android 14+ (API 34): must declare the microphone foreground service type -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+
+    <!-- Media audio access on Android 13+ (API 33) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
 
     <!-- Bluetooth for external mic -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
@@ -44,6 +52,16 @@
             android:exported="false"
             android:screenOrientation="portrait"
             android:parentActivityName=".MainActivity" />
+
+        <!--
+            Required by the 'record' Flutter plugin (com.llfbandit.record).
+            Without this declaration Android cannot find the plugin's service,
+            causing MissingPluginException on hasPermission / startRecording.
+        -->
+        <service
+            android:name="com.llfbandit.record.record.RecordService"
+            android:foregroundServiceType="microphone"
+            android:exported="false" />
 
     </application>
 </manifest>
