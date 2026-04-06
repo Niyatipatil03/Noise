@@ -10,8 +10,8 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # TFLite inference (offline)
-  tflite_flutter: ^0.10.4
+  # TFLite inference (offline) — 0.11+ is pure FFI, no Android plugin = no v1 embedding issue
+  tflite_flutter: ">=0.11.0 <1.0.0"
 
   # Audio recording + Bluetooth mic
   record: ^5.1.2
