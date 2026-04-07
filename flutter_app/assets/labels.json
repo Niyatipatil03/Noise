@@ -1,0 +1,23 @@
+{
+  "binary": {"OK": 0, "NOT_OK": 1},
+  "noise_type": {
+    "OK": 0,
+    "IP_NOISE": 1,
+    "SUNROOF_NOISE": 2,
+    "REAR_NOISE": 3,
+    "STEERING_NOISE": 4,
+    "DOOR_NOISE": 5,
+    "GLASS_NOISE": 6,
+    "UNKNOWN_NOISE": 7
+  },
+  "noise_type_display": [
+    "OK",
+    "IP Noise",
+    "Sunroof Noise",
+    "Rear Noise",
+    "Steering Noise",
+    "Door Noise",
+    "Glass Noise",
+    "Unknown Noise"
+  ]
+}

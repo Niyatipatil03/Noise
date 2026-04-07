@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BSR Noise Detector — Results</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0A0A0A; color: #fff; font-family: 'Segoe UI', sans-serif; padding: 16px; max-width: 420px; margin: auto; }
+  .header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0 8px; }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .header p { font-size: 12px; color: #888; }
+  .subtitle { font-size: 11px; color: #666; text-align: right; margin-bottom: 16px; }
+  .card { background: #1A1A1A; border-radius: 16px; padding: 16px; margin-bottom: 12px; animation: slideIn 0.3s ease; }
+  .card.notok { border: 1px solid rgba(229,57,53,0.4); }
+  .card.ok    { border: 1px solid rgba(67,160,71,0.4); }
+  .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .icon { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .icon.notok { background: rgba(229,57,53,0.15); }
+  .icon.ok    { background: rgba(67,160,71,0.15); }
+  .vehicle-name { font-size: 15px; font-weight: 700; }
+  .vehicle-vin  { font-size: 10px; color: #555; font-family: monospace; margin-top: 2px; }
+  .vehicle-date { font-size: 10px; color: #444; margin-top: 1px; }
+  .badge { margin-left: auto; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .badge.notok { background: rgba(229,57,53,0.15); color: #E53935; border: 1px solid rgba(229,57,53,0.4); }
+  .badge.ok    { background: rgba(67,160,71,0.15);  color: #43A047; border: 1px solid rgba(67,160,71,0.4); }
+  .stats { display: flex; gap: 12px; margin-bottom: 10px; }
+  .stat { display: flex; align-items: center; gap: 4px; font-size: 12px; }
+  .stat.windows { color: #607D8B; }
+  .stat.rate-bad { color: #EF5350; }
+  .stat.rate-ok  { color: #66BB6A; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { background: rgba(255,152,0,0.1); border: 1px solid rgba(255,152,0,0.3); color: #FFA726; font-size: 11px; padding: 3px 8px; border-radius: 8px; }
+  .summary { background: #111; border: 1px solid #222; border-radius: 12px; padding: 14px; margin: 20px 0 12px; }
+  .summary h3 { font-size: 13px; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+  .summary-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #1a1a1a; font-size: 13px; }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row span:first-child { color: #666; }
+  .ok-val   { color: #43A047; font-weight: 600; }
+  .notok-val{ color: #E53935; font-weight: 600; }
+  .appbar { display: flex; align-items: center; padding: 8px 0 16px; gap: 8px; }
+  .appbar-title { font-size: 18px; font-weight: 700; }
+  .appbar-sub   { font-size: 11px; color: #555; }
+  .divider { height: 1px; background: #1e1e1e; margin: 4px 0 12px; }
+  @keyframes slideIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+</style>
+</head>
+<body>
+
+<div class="appbar">
+  <div>
+    <div class="appbar-title">Session History</div>
+    <div class="appbar-sub">5 sessions</div>
+  </div>
+</div>
+<div class="divider"></div>
+
+<!-- Session 1 — NOT OK -->
+<div class="card notok">
+  <div class="card-header">
+    <div class="icon notok">⚠️</div>
+    <div>
+      <div class="vehicle-name">Toyota Fortuner</div>
+      <div class="vehicle-vin">VIN: MA3EWDE1S00123456</div>
+      <div class="vehicle-date">7/4/2026  09:14</div>
+    </div>
+    <div class="badge notok">NOT OK</div>
+  </div>
+  <div class="stats">
+    <div class="stat windows">▦ 42 windows</div>
+    <div class="stat rate-bad">⚠ 64% NOT OK</div>
+  </div>
+  <div class="tags">
+    <span class="tag">Door Noise  18×</span>
+    <span class="tag">Rear Noise  9×</span>
+  </div>
+</div>
+
+<!-- Session 2 — OK -->
+<div class="card ok">
+  <div class="card-header">
+    <div class="icon ok">✅</div>
+    <div>
+      <div class="vehicle-name">Maruti Suzuki Swift</div>
+      <div class="vehicle-vin">VIN: MA3FJEB1S00234567</div>
+      <div class="vehicle-date">7/4/2026  09:52</div>
+    </div>
+    <div class="badge ok">OK</div>
+  </div>
+  <div class="stats">
+    <div class="stat windows">▦ 38 windows</div>
+    <div class="stat rate-ok">✓ 7% NOT OK</div>
+  </div>
+</div>
+
+<!-- Session 3 — NOT OK -->
+<div class="card notok">
+  <div class="card-header">
+    <div class="icon notok">⚠️</div>
+    <div>
+      <div class="vehicle-name">Hyundai Creta</div>
+      <div class="vehicle-vin">VIN: MALC241CLMM345678</div>
+      <div class="vehicle-date">7/4/2026  10:31</div>
+    </div>
+    <div class="badge notok">NOT OK</div>
+  </div>
+  <div class="stats">
+    <div class="stat windows">▦ 51 windows</div>
+    <div class="stat rate-bad">⚠ 71% NOT OK</div>
+  </div>
+  <div class="tags">
+    <span class="tag">Sunroof Noise  24×</span>
+    <span class="tag">Glass Noise  12×</span>
+  </div>
+</div>
+
+<!-- Session 4 — OK -->
+<div class="card ok">
+  <div class="card-header">
+    <div class="icon ok">✅</div>
+    <div>
+      <div class="vehicle-name">Honda City</div>
+      <div class="vehicle-vin">VIN: MAKEA263XLM456789</div>
+      <div class="vehicle-date">7/4/2026  11:05</div>
+    </div>
+    <div class="badge ok">OK</div>
+  </div>
+  <div class="stats">
+    <div class="stat windows">▦ 36 windows</div>
+    <div class="stat rate-ok">✓ 11% NOT OK</div>
+  </div>
+</div>
+
+<!-- Session 5 — NOT OK -->
+<div class="card notok">
+  <div class="card-header">
+    <div class="icon notok">⚠️</div>
+    <div>
+      <div class="vehicle-name">Tata Nexon</div>
+      <div class="vehicle-vin">VIN: MAT607251NTB567890</div>
+      <div class="vehicle-date">7/4/2026  11:48</div>
+    </div>
+    <div class="badge notok">NOT OK</div>
+  </div>
+  <div class="stats">
+    <div class="stat windows">▦ 44 windows</div>
+    <div class="stat rate-bad">⚠ 59% NOT OK</div>
+  </div>
+  <div class="tags">
+    <span class="tag">IP Noise  17×</span>
+    <span class="tag">Steering Noise  9×</span>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="summary">
+  <h3>Day Summary</h3>
+  <div class="summary-row"><span>Total Vehicles</span><span>5</span></div>
+  <div class="summary-row"><span>Passed (OK)</span><span class="ok-val">2 ✓</span></div>
+  <div class="summary-row"><span>Failed (NOT OK)</span><span class="notok-val">3 ⚠</span></div>
+  <div class="summary-row"><span>Failure Rate</span><span class="notok-val">60%</span></div>
+  <div class="summary-row"><span>Top Defect</span><span style="color:#FFA726">Sunroof Noise</span></div>
+</div>
+
+</body>
+</html>
