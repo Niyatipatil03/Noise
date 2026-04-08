@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
 
   # TFLite inference (offline) — 0.11+ uses pure FFI, no v1 embedding
-  tflite_flutter: ^0.11.0
+  tflite_flutter: ^0.12.0
 
   # Audio recording
   record: ^6.0.0
