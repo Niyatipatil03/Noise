@@ -38,7 +38,7 @@ class NoiseClassifier {
 
     interp.runForMultipleInputs(
       [input],
-      {0: binaryOut, 1: typeOut},
+      {0: typeOut, 1: binaryOut},
     );
 
     final notOkProb  = (binaryOut[0][0] as double);
