@@ -42,11 +42,5 @@
             </intent-filter>
         </activity>
 
-        <!-- REQUIRED: tells Flutter build system to use v2 embedding.
-             Without this, Flutter defaults to v1 and throws the deleted embedding error. -->
-        <meta-data
-            android:name="flutterEmbedding"
-            android:value="2" />
-
     </application>
 </manifest>
