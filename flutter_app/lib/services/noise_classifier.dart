@@ -16,8 +16,9 @@ class NoiseClassifier {
 
   Future<void> init() async {
     final options = InterpreterOptions()..threads = 4;
-    _interpreter = await Interpreter.fromAsset(
-      'bsr_detector.tflite',
+    final byteData = await rootBundle.load('assets/bsr_detector.tflite');
+    _interpreter = Interpreter.fromBuffer(
+      byteData.buffer.asUint8List(),
       options: options,
     );
   }
