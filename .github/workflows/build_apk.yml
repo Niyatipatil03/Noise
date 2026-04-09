@@ -29,9 +29,28 @@ jobs:
         working-directory: flutter_app
         run: flutter pub get
 
+      - name: Show resolved dependency versions
+        working-directory: flutter_app
+        run: |
+          echo "=== Key dependency versions ==="
+          flutter pub deps 2>&1 | grep -E "tflite|record|permission_handler" || true
+          echo "=== AndroidManifest flutterEmbedding ==="
+          grep -n "flutterEmbedding" android/app/src/main/AndroidManifest.xml || echo "WARNING: not found"
+
       - name: Build release APK
         working-directory: flutter_app
-        run: flutter build apk --release --verbose
+        shell: bash
+        run: |
+          flutter build apk --release --verbose 2>&1 | tee /tmp/build_log.txt
+          exit ${PIPESTATUS[0]}
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: /tmp/build_log.txt
+          retention-days: 7
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
