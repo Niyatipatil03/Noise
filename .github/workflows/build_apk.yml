@@ -2,7 +2,7 @@ name: Build BSR APK
 
 on:
   push:
-    branches: [ ccr-1bb6c244-1kDv4, main ]
+    branches: [ ccr-1bb6c244-1kDv4, main, claude/build-apk-4cV6K ]
   workflow_dispatch:   # allows manual trigger from GitHub UI
 
 jobs:
@@ -29,9 +29,36 @@ jobs:
         working-directory: flutter_app
         run: flutter pub get
 
+      - name: Show resolved dependency versions
+        working-directory: flutter_app
+        run: |
+          echo "=== Key dependency versions ==="
+          flutter pub deps 2>&1 | grep -E "tflite|record|permission_handler" || true
+          echo "=== AndroidManifest flutterEmbedding ==="
+          grep -n "flutterEmbedding" android/app/src/main/AndroidManifest.xml || echo "WARNING: not found"
+
       - name: Build release APK
         working-directory: flutter_app
-        run: flutter build apk --release
+        shell: bash
+        run: |
+          flutter build apk --release 2>&1 | tee /tmp/build_log.txt
+          BUILD_EXIT=${PIPESTATUS[0]}
+          if [ $BUILD_EXIT -ne 0 ]; then
+            ERR=$(grep -E "error:|Error:|FAILURE|Exception:|Build failed|deleted Android" /tmp/build_log.txt | head -5 | tr '\n' ' | ')
+            if [ -z "$ERR" ]; then
+              ERR=$(tail -5 /tmp/build_log.txt | tr '\n' ' | ')
+            fi
+            echo "::error::Build failed — $ERR"
+          fi
+          exit $BUILD_EXIT
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: /tmp/build_log.txt
+          retention-days: 7
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

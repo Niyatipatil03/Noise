@@ -10,26 +10,27 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # TFLite inference (offline) — 0.11+ uses pure FFI, no v1 embedding
-  tflite_flutter: ">=0.11.0 <1.0.0"
+  # TFLite inference (offline) — 0.12.0 uses pure FFI, no v1 embedding
+  # Pinned to 0.12.0: 0.12.1 bumped to litert:1.4.0 + compileSdk 36 (incompatible with Flutter 3.24.3 / AGP 8.3)
+  tflite_flutter: 0.12.0
 
-  # Audio recording + Bluetooth mic — 6.x has no v1 embedding shim
-  record: ^6.0.0
+  # Audio recording
+  record: ^5.0.0
 
   # Permissions
-  permission_handler: ^11.3.1
+  permission_handler: ^11.3.0
 
   # File saving
   path_provider: ^2.1.3
 
   # Local history storage
-  shared_preferences: ^2.2.3
+  shared_preferences: ^2.3.0
 
   # Animations
   flutter_animate: ^4.5.0
 
   # Icons
-  cupertino_icons: ^1.0.6
+  cupertino_icons: ^1.0.8
 
 dev_dependencies:
   flutter_test:
