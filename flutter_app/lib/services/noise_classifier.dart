@@ -16,11 +16,20 @@ class NoiseClassifier {
 
   Future<void> init() async {
     final options = InterpreterOptions()..threads = 4;
-    final byteData = await rootBundle.load('assets/bsr_detector.tflite');
-    _interpreter = Interpreter.fromBuffer(
-      byteData.buffer.asUint8List(),
-      options: options,
-    );
+    ByteData byteData;
+    try {
+      byteData = await rootBundle.load('assets/bsr_detector.tflite');
+    } catch (e) {
+      throw Exception('Asset not found: $e');
+    }
+    try {
+      _interpreter = Interpreter.fromBuffer(
+        byteData.buffer.asUint8List(),
+        options: options,
+      );
+    } catch (e) {
+      throw Exception('Interpreter failed (size=${byteData.lengthInBytes}B): $e');
+    }
   }
 
   DetectionResult classify(Uint8List pcm16Bytes) {
