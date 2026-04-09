@@ -41,8 +41,16 @@ jobs:
         working-directory: flutter_app
         shell: bash
         run: |
-          flutter build apk --release --verbose 2>&1 | tee /tmp/build_log.txt
-          exit ${PIPESTATUS[0]}
+          flutter build apk --release 2>&1 | tee /tmp/build_log.txt
+          BUILD_EXIT=${PIPESTATUS[0]}
+          if [ $BUILD_EXIT -ne 0 ]; then
+            ERR=$(grep -E "error:|Error:|FAILURE|Exception:|Build failed|deleted Android" /tmp/build_log.txt | head -5 | tr '\n' ' | ')
+            if [ -z "$ERR" ]; then
+              ERR=$(tail -5 /tmp/build_log.txt | tr '\n' ' | ')
+            fi
+            echo "::error::Build failed — $ERR"
+          fi
+          exit $BUILD_EXIT
 
       - name: Upload build log on failure
         if: failure()
