@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId "com.bsr.noisedetector"
-        minSdk 24
+        minSdk 26
         targetSdk flutter.targetSdkVersion
         versionCode flutter.versionCode
         versionName flutter.versionName
