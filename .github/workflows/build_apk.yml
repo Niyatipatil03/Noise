@@ -2,7 +2,7 @@ name: Build BSR APK
 
 on:
   push:
-    branches: [ ccr-1bb6c244-1kDv4, main ]
+    branches: [ main, 'claude/**' ]
   workflow_dispatch:   # allows manual trigger from GitHub UI
 
 jobs:
