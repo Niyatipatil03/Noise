@@ -31,7 +31,7 @@ class BSRApp extends StatelessWidget {
           backgroundColor: Colors.transparent,
           elevation: 0,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: const Color(0xFF1A1A1A),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
