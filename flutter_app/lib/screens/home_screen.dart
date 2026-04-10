@@ -24,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   bool _isRecording  = false;
   bool _modelLoaded  = false;
+  String? _modelError;
   DetectionResult? _latest;
   StreamSubscription? _clipSub;
   VehicleSession? _currentSession;
@@ -40,7 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
       await _classifier.init();
       if (mounted) setState(() => _modelLoaded = true);
     } catch (e) {
-      _snack('Model load failed: $e');
+      if (mounted) setState(() => _modelError = e.toString());
     }
   }
 
@@ -196,6 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(children: [
                 const SizedBox(height: 8),
+                if (_modelError != null) _buildModelErrorBanner(),
                 _buildStatusCard(),
                 const SizedBox(height: 16),
                 _buildStatsRow(),
@@ -212,6 +214,50 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  Widget _buildModelErrorBanner() => Container(
+    margin: const EdgeInsets.only(bottom: 16),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: const Color(0xFF4A0000),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.red.withOpacity(0.5)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(children: [
+          Icon(Icons.error_outline_rounded, color: Colors.red, size: 18),
+          SizedBox(width: 8),
+          Text('Model Load Failed',
+              style: TextStyle(color: Colors.red,
+                  fontWeight: FontWeight.bold, fontSize: 14)),
+        ]),
+        const SizedBox(height: 10),
+        const Text(
+          'The TFLite model could not be loaded. To fix this:',
+          style: TextStyle(color: Colors.white70, fontSize: 13),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          '1.  Train:   python scripts/train.py\n'
+          '2.  Export: python scripts/export_tflite.py\n'
+          '3.  Copy models/bsr_detector.tflite\n'
+          '         → flutter_app/assets/\n'
+          '4.  Rebuild and reinstall the APK',
+          style: TextStyle(color: Colors.white54, fontSize: 12,
+              fontFamily: 'monospace'),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          _modelError ?? '',
+          style: const TextStyle(color: Colors.red, fontSize: 11),
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    ),
+  ).animate().fadeIn(duration: 300.ms);
 
   Widget _buildStatusCard() {
     final Color cardColor;
@@ -428,7 +474,11 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           _isRecording
               ? 'Tap to stop recording'
-              : _modelLoaded ? 'Tap to start analysis' : 'Loading model…',
+              : _modelLoaded
+                  ? 'Tap to start analysis'
+                  : _modelError != null
+                      ? 'Model unavailable — see banner above'
+                      : 'Loading model…',
           style: const TextStyle(color: Colors.white54, fontSize: 13),
         ),
 

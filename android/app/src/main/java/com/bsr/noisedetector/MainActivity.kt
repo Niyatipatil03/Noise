@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var recorder: AudioRecorder
-    private lateinit var classifier: NoiseClassifier
+    private var classifier: NoiseClassifier? = null
 
     private val detectionHistory = mutableListOf<NoiseClassifier.Result>()
     private var analysisJob: Job? = null
@@ -55,8 +55,12 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        classifier = NoiseClassifier(this)
-        recorder   = AudioRecorder(this)
+        try {
+            classifier = NoiseClassifier(this)
+        } catch (e: Exception) {
+            showModelLoadError(e)
+        }
+        recorder = AudioRecorder(this)
 
         setupUI()
         observeRecorderState()
@@ -65,12 +69,17 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         recorder.release()
-        classifier.close()
+        classifier?.close()
     }
 
     // ── UI setup ──────────────────────────────────────────────────────────────
 
     private fun setupUI() {
+        if (classifier == null) {
+            binding.btnStartStop.isEnabled = false
+            binding.tvStatus.text = "Model not loaded — see error dialog"
+        }
+
         binding.btnStartStop.setOnClickListener {
             if (recorder.state.value == AudioRecorder.State.RECORDING) {
                 stopAnalysis()
@@ -92,7 +101,7 @@ class MainActivity : AppCompatActivity() {
                 when (state) {
                     AudioRecorder.State.IDLE -> {
                         binding.btnStartStop.text = "START ANALYSIS"
-                        binding.btnStartStop.isEnabled = true
+                        binding.btnStartStop.isEnabled = classifier != null
                         binding.progressBar.visibility = View.GONE
                     }
                     AudioRecorder.State.CONNECTING_BT -> {
@@ -134,6 +143,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startAnalysis() {
+        val cls = classifier ?: run {
+            Toast.makeText(this, "Model not loaded", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         detectionHistory.clear()
         windowCount = 0
         binding.btnViewResults.visibility = View.GONE
@@ -144,7 +158,7 @@ class MainActivity : AppCompatActivity() {
         analysisJob = lifecycleScope.launch {
             recorder.audioClips.collect { waveform ->
                 withContext(Dispatchers.Default) {
-                    val result = classifier.classify(waveform)
+                    val result = cls.classify(waveform)
                     withContext(Dispatchers.Main) {
                         detectionHistory.add(result)
                         windowCount++
@@ -212,6 +226,24 @@ class MainActivity : AppCompatActivity() {
             putExtra(ResultsActivity.EXTRA_NOISE_TYPES, typeSummary)
         }
         startActivity(intent)
+    }
+
+    private fun showModelLoadError(e: Exception) {
+        val detail = e.cause?.message ?: e.message ?: "unknown error"
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Model Load Failed")
+            .setMessage(
+                "The TFLite model could not be loaded.\n\n" +
+                "To fix this:\n" +
+                "1. Train the model:  python scripts/train.py\n" +
+                "2. Export to TFLite: python scripts/export_tflite.py\n" +
+                "3. Copy models/bsr_detector.tflite → android/app/src/main/assets/\n" +
+                "4. Rebuild and reinstall the APK\n\n" +
+                "Detail: $detail"
+            )
+            .setPositiveButton("OK") { dialog, _ -> dialog.dismiss() }
+            .setCancelable(true)
+            .show()
     }
 
     private fun hasPermission(perm: String) =
