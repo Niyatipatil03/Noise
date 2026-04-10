@@ -2,7 +2,7 @@ name: Build BSR APK
 
 on:
   push:
-    branches: [ ccr-1bb6c244-1kDv4, main ]
+    branches: [ ccr-1bb6c244-1kDv4, main, claude/debug-ongoing-issue-17KV9 ]
   workflow_dispatch:   # allows manual trigger from GitHub UI
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.2'
+          flutter-version: '3.24.3'
           channel: 'stable'
 
       - name: Install Flutter dependencies
