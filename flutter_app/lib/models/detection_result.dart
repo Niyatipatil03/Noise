@@ -25,28 +25,41 @@ class VehicleSession {
   DateTime? endTime;
   final List<DetectionResult> results;
 
+  // Saved summary values restored from JSON (override computed values)
+  final int? _savedTotal;
+  final int? _savedNotOk;
+  final bool? _savedIsNotOk;
+  final Map<String, int>? _savedBreakdown;
+
   VehicleSession({
     required this.id,
     required this.vehicleName,
     required this.startTime,
     this.endTime,
     required this.results,
-  });
+    int? savedTotal,
+    int? savedNotOk,
+    bool? savedIsNotOk,
+    Map<String, int>? savedBreakdown,
+  })  : _savedTotal = savedTotal,
+        _savedNotOk = savedNotOk,
+        _savedIsNotOk = savedIsNotOk,
+        _savedBreakdown = savedBreakdown;
 
-  int get totalWindows  => results.length;
-  int get notOkCount    => results.where((r) => r.isNotOk).length;
+  int get totalWindows  => _savedTotal ?? results.length;
+  int get notOkCount    => _savedNotOk ?? results.where((r) => r.isNotOk).length;
   int get okCount       => totalWindows - notOkCount;
-  bool get isNotOk      => notOkCount > okCount;
+  bool get isNotOk      => _savedIsNotOk ?? notOkCount > okCount;
   double get notOkRate  => totalWindows > 0 ? notOkCount / totalWindows : 0;
 
   Map<String, int> get noiseBreakdown {
+    if (_savedBreakdown != null) return _savedBreakdown!;
     final map = <String, int>{};
     for (final r in results.where((r) => r.isNotOk)) {
       map[r.noiseTypeName] = (map[r.noiseTypeName] ?? 0) + 1;
     }
-    final sorted = Map.fromEntries(
+    return Map.fromEntries(
         map.entries.toList()..sort((a, b) => b.value.compareTo(a.value)));
-    return sorted;
   }
 
   // JSON serialisation for SharedPreferences
@@ -66,6 +79,11 @@ class VehicleSession {
     vehicleName: j['vehicleName'],
     startTime:   DateTime.parse(j['startTime']),
     endTime:     j['endTime'] != null ? DateTime.parse(j['endTime']) : null,
-    results:     [],   // lightweight — only summary stored
+    results:     [],
+    savedTotal:    j['totalWindows'] as int?,
+    savedNotOk:    j['notOkCount'] as int?,
+    savedIsNotOk:  j['isNotOk'] as bool?,
+    savedBreakdown: (j['noiseBreakdown'] as Map?)
+        ?.map((k, v) => MapEntry(k as String, (v as num).toInt())),
   );
 }
