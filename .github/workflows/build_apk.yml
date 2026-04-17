@@ -61,6 +61,8 @@ jobs:
         run: |
           echo "=== FULL BUILD LOG ==="
           cat /tmp/build_log.txt || echo "(log not found)"
+          LOG=$(head -c 600 /tmp/build_log.txt 2>/dev/null | tr '\n' '§' || echo "(none)")
+          echo "::notice title=Build Log (first 600 bytes)::${LOG}"
 
       - name: Upload build log on failure
         if: failure()
