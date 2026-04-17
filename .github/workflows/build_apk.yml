@@ -56,6 +56,12 @@ jobs:
           fi
           exit $BUILD_EXIT
 
+      - name: Print build log on failure
+        if: failure()
+        run: |
+          echo "=== FULL BUILD LOG ==="
+          cat /tmp/build_log.txt || echo "(log not found)"
+
       - name: Upload build log on failure
         if: failure()
         uses: actions/upload-artifact@v4
