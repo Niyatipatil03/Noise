@@ -25,21 +25,32 @@ class VehicleSession {
   DateTime? endTime;
   final List<DetectionResult> results;
 
+  // Summary fields populated when loaded from JSON (results list is empty in history)
+  final int? _storedTotalWindows;
+  final int? _storedNotOkCount;
+  final Map<String, int>? _storedNoiseBreakdown;
+
   VehicleSession({
     required this.id,
     required this.vehicleName,
     required this.startTime,
     this.endTime,
     required this.results,
-  });
+    int? storedTotalWindows,
+    int? storedNotOkCount,
+    Map<String, int>? storedNoiseBreakdown,
+  })  : _storedTotalWindows = storedTotalWindows,
+        _storedNotOkCount = storedNotOkCount,
+        _storedNoiseBreakdown = storedNoiseBreakdown;
 
-  int get totalWindows  => results.length;
-  int get notOkCount    => results.where((r) => r.isNotOk).length;
-  int get okCount       => totalWindows - notOkCount;
-  bool get isNotOk      => notOkCount > okCount;
-  double get notOkRate  => totalWindows > 0 ? notOkCount / totalWindows : 0;
+  int get totalWindows => _storedTotalWindows ?? results.length;
+  int get notOkCount   => _storedNotOkCount ?? results.where((r) => r.isNotOk).length;
+  int get okCount      => totalWindows - notOkCount;
+  bool get isNotOk     => notOkCount > okCount;
+  double get notOkRate => totalWindows > 0 ? notOkCount / totalWindows : 0;
 
   Map<String, int> get noiseBreakdown {
+    if (_storedNoiseBreakdown != null) return _storedNoiseBreakdown!;
     final map = <String, int>{};
     for (final r in results.where((r) => r.isNotOk)) {
       map[r.noiseTypeName] = (map[r.noiseTypeName] ?? 0) + 1;
@@ -51,21 +62,27 @@ class VehicleSession {
 
   // JSON serialisation for SharedPreferences
   Map<String, dynamic> toJson() => {
-    'id':          id,
-    'vehicleName': vehicleName,
-    'startTime':   startTime.toIso8601String(),
-    'endTime':     endTime?.toIso8601String(),
-    'totalWindows': totalWindows,
-    'notOkCount':  notOkCount,
-    'isNotOk':     isNotOk,
+    'id':            id,
+    'vehicleName':   vehicleName,
+    'startTime':     startTime.toIso8601String(),
+    'endTime':       endTime?.toIso8601String(),
+    'totalWindows':  totalWindows,
+    'notOkCount':    notOkCount,
+    'isNotOk':       isNotOk,
     'noiseBreakdown': noiseBreakdown,
   };
 
-  static VehicleSession fromJson(Map<String, dynamic> j) => VehicleSession(
-    id:          j['id'],
-    vehicleName: j['vehicleName'],
-    startTime:   DateTime.parse(j['startTime']),
-    endTime:     j['endTime'] != null ? DateTime.parse(j['endTime']) : null,
-    results:     [],   // lightweight — only summary stored
-  );
+  static VehicleSession fromJson(Map<String, dynamic> j) {
+    final rawBreakdown = j['noiseBreakdown'] as Map<String, dynamic>?;
+    return VehicleSession(
+      id:          j['id'],
+      vehicleName: j['vehicleName'],
+      startTime:   DateTime.parse(j['startTime']),
+      endTime:     j['endTime'] != null ? DateTime.parse(j['endTime']) : null,
+      results:     [],
+      storedTotalWindows:   j['totalWindows'] as int?,
+      storedNotOkCount:     j['notOkCount'] as int?,
+      storedNoiseBreakdown: rawBreakdown?.map((k, v) => MapEntry(k, (v as num).toInt())),
+    );
+  }
 }

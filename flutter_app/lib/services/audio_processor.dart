@@ -171,7 +171,8 @@ class AudioProcessor {
       for (int m = 0; m < nMels; m++) {
         double energy = 0.0;
         for (int b = 0; b < nBins; b++) energy += power[b] * _melFilterbank[m][b];
-        logMel[m][t] = log(max(energy, 1e-10));
+        // Convert to dB (10 * log10) to match librosa.power_to_db used in training
+        logMel[m][t] = 10.0 * log(max(energy, 1e-10)) / ln10;
       }
     }
 
