@@ -10,14 +10,14 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # TFLite inference (offline) — 0.11+ uses pure FFI, no v1 embedding
-  tflite_flutter: ">=0.11.0 <1.0.0"
+  # TFLite inference (offline)
+  tflite_flutter: ^0.11.0
 
-  # Audio recording + Bluetooth mic — 6.x has no v1 embedding shim
-  record: ^6.0.0
+  # Audio recording
+  record: ^5.1.2
 
   # Permissions
-  permission_handler: ^12.0.0
+  permission_handler: ^11.3.1
 
   # File saving
   path_provider: ^2.1.3
